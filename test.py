@@ -56,7 +56,6 @@ class Application:
         self.frames = 30
         self.cap = None
 
-
         self.load_config()
         self.mount_gui(master)
 
@@ -231,7 +230,7 @@ class Application:
         self.fpreview.pack(side='left')
 
         self.sframes = tkinter.Scale(self.fpreview, from_=0, to=0, orient=tkinter.VERTICAL)
-        self.sframes['command'] = lambda e: self.load_image()
+        self.sframes['command'] = lambda e: self.handle_configure()
         self.sframes['tickinterval']=1
         self.sframes.pack(side = 'left')
 
@@ -244,6 +243,11 @@ class Application:
         self.limage_process = tkinter.Label(self.fpreview)
         self.limage_process.pack(side = 'left')
 
+        self.load_image()
+        self.process_image(self.image)
+
+    def handle_configure(self):
+        self.configure()
         self.load_image()
         self.process_image(self.image)
 
@@ -292,9 +296,11 @@ class Application:
 
         #print(img.shape, prop_w, prop_h)
         #print(int(w*prop_w), int(h*prop_h))
-
         img = cv2.resize(img, (int(w*prop_w), int(h*prop_h)), cv2.INTER_AREA)
         
+        
+        #print(img[125, 240].shape, )
+
         self.image = img
 
         image = Image.fromarray(self.image)
@@ -331,8 +337,34 @@ class Application:
         except Exception as e:
             print('Error to GaussianBlur', e)
 
-        th = self.threshold
-        th, proc = cv2.threshold(gray, th, 255, cv2.THRESH_BINARY)
+        # # loop over the boundaries
+        # for (lower, upper) in boundaries:
+        #     # create NumPy arrays from the boundaries
+        #     lower = np.array(lower, dtype = "uint8")
+        #     upper = np.array(upper, dtype = "uint8")
+        #     # find the colors within the specified boundaries and apply
+        #     # the mask
+        #     mask = cv2.inRange(image, lower, upper)
+        #     output = cv2.bitwise_and(image, image, mask = mask)
+        #     # show the images
+        #     cv2.imshow("images", np.hstack([image, output]))
+        #     cv2.waitKey(0)
+        boundaries = [
+            ([17, 15, 100], [50, 56, 200]),
+            ([86, 31, 4], [220, 88, 50]),
+            ([25, 146, 190], [62, 174, 250]),
+            ([103, 86, 65], [145, 133, 128])
+        ]
+        l,u = boundaries[0]
+        lower = np.array(l, dtype='uint8')
+        upper = np.array(u, dtype='uint8')
+        #proc = cv2.GaussianBlur(image, (g1,g2), 0)
+        proc = cv2.inRange(image, lower, upper)
+        #proc = image
+        #cv2.circle(proc, (125,50), 30, (191,24,3), -1)
+        #cv2.circle(proc, (125,150), 30, (228,29,3), -1)
+        # th = self.threshold
+        # th, proc = cv2.threshold(gray, th, 255, cv2.THRESH_BINARY)
         
         gray = Image.fromarray(gray)
         gray = ImageTk.PhotoImage(gray)
@@ -344,37 +376,37 @@ class Application:
         self.limage_process.configure(image=p)
         self.limage_process.image = p
 
-        if len(self.buffer) == 0:
-            for i in range(0, 3):
-                self.buffer.append(proc)
+        # if len(self.buffer) == 0:
+        #     for i in range(0, 3):
+        #         self.buffer.append(proc)
         
-        self.buffer_idx = (self.buffer_idx + 1)%len(self.buffer)
-        self.buffer[self.buffer_idx] = proc
-        t0, t1, t2 = self.buffer
-        d1 = cv2.absdiff(t0, t1)
-        d2 = cv2.absdiff(t1,t2)
-        res = cv2.bitwise_or(d1,d2)
-        count = cv2.countNonZero(res)
-        if count == 0: count = 1
+        # self.buffer_idx = (self.buffer_idx + 1)%len(self.buffer)
+        # self.buffer[self.buffer_idx] = proc
+        # t0, t1, t2 = self.buffer
+        # d1 = cv2.absdiff(t0, t1)
+        # d2 = cv2.absdiff(t1,t2)
+        # res = cv2.bitwise_or(d1,d2)
+        # count = cv2.countNonZero(res)
+        # if count == 0: count = 1
         
-        if self.count == -1:
-            self.count = count
+        # if self.count == -1:
+        #     self.count = count
         
-        if not self.running:
-            return
-        diff = abs(self.count - count)
-        self.lstatus['text'] = f'{self.sense} - {diff}, {(time.time() - self.last_sent)}'
+        # if not self.running:
+        #     return
+        # diff = abs(self.count - count)
+        # self.lstatus['text'] = f'{self.sense} - {diff}, {(time.time() - self.last_sent)}'
 
-        if diff > self.sense and (time.time() - self.last_sent) > 3:
-            self.last_sent = time.time()
-            pyautogui.mouseDown()
-            time.sleep(0.02)
-            pyautogui.mouseUp()
+        # if diff > self.sense and (time.time() - self.last_sent) > 3:
+        #     self.last_sent = time.time()
+        #     pyautogui.mouseDown()
+        #     time.sleep(0.02)
+        #     pyautogui.mouseUp()
 
-            time.sleep(0.5)
-            pyautogui.mouseDown()
-            time.sleep(0.02)
-            pyautogui.mouseUp()
+        #     time.sleep(0.5)
+        #     pyautogui.mouseDown()
+        #     time.sleep(0.02)
+        #     pyautogui.mouseUp()
 
         # res = Image.fromarray(res)
         # res = ImageTk.PhotoImage(res)
@@ -459,8 +491,8 @@ class Application:
             self.fgaussianblur_v2.get()
         )
 
-        self.load_image()
-        self.process_image(self.image)
+        # self.load_image()
+        # self.process_image(self.image)
 
 
         self.pos = (
