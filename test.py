@@ -524,6 +524,16 @@ class Application:
 
         self.load_config()
 
+        self.sthreshold.set(self.threshold)
+
+        gv1,gv2 = self.gaussianblur
+        self.fgaussianblur_v1.set(gv1)
+        self.fgaussianblur_v2.set(gv2)
+
+        posx,posy = self.pos
+        self.sposx.set(posx)
+        self.sposy.set(posy)
+
         self.srange_lower_r.set(self.boundary_lower[0])
         self.srange_lower_g.set(self.boundary_lower[1])
         self.srange_lower_b.set(self.boundary_lower[2])
@@ -531,6 +541,9 @@ class Application:
         self.srange_upper_r.set(self.boundary_upper[0])
         self.srange_upper_g.set(self.boundary_upper[1])
         self.srange_upper_b.set(self.boundary_upper[2])
+
+        self.esense.delete(0, 'end')
+        self.esense.insert(0, self.sense)
 
         self.configure()
 
